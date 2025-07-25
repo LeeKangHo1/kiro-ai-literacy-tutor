@@ -214,15 +214,24 @@
     - QnAResolver 또는 LearningSupervisor로의 라우팅 처리
     - _요구사항: 3.2, 5.1_
 
-- [ ] 6. 문제 출제 및 평가 시스템 구현
-  - [ ] 6.1 QuizGenerator 에이전트 구현 (분할)
+- [x] 6. 문제 출제 및 평가 시스템 구현
+
+
+
+
+
+  - [x] 6.1 QuizGenerator 에이전트 구현 (분할)
+
+
     - question_generator.py: 객관식/프롬프트 문제 생성 로직
     - hint_generator.py: 문제별 맞춤 힌트 생성 로직
     - difficulty_manager.py: 난이도 조절 및 관리 기능
     - quiz_tool.py, hint_tool.py: 관련 도구 구현
     - _요구사항: 2.3, 7.1, 7.2_
 
-  - [ ] 6.2 EvaluationFeedbackAgent 에이전트 구현 (분할)
+  - [x] 6.2 EvaluationFeedbackAgent 에이전트 구현 (분할)
+
+
     - answer_evaluator.py: 답변 채점 및 이해도 측정 로직
     - feedback_generator.py: 개인화된 피드백 생성 로직
     - answer_eval_tool.py, feedback_tool.py: 관련 도구 구현
