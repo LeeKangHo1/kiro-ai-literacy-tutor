@@ -192,14 +192,23 @@
     - theory_tool.py: theory_generation_tool 구현
     - _요구사항: 2.1, 2.2_
 
-- [ ] 5. 라우팅 시스템 구현
-  - [ ] 5.1 PostTheoryRouter 구현
+- [x] 5. 라우팅 시스템 구현
+
+
+
+
+
+  - [x] 5.1 PostTheoryRouter 구현
+
+
     - 개념 설명 후 사용자 의도 파악 로직 (질문 vs 문제 요청)
     - 패턴 매칭 기반 라우팅 규칙 구현
     - QnAResolver 또는 QuizGenerator로의 라우팅 처리
     - _요구사항: 2.2, 3.1_
 
-  - [ ] 5.2 PostFeedbackRouter 구현
+  - [x] 5.2 PostFeedbackRouter 구현
+
+
     - 피드백 후 사용자 의도 파악 로직 (추가 질문 vs 진행 요청)
     - 진행 패턴 및 질문 패턴 매칭 구현
     - QnAResolver 또는 LearningSupervisor로의 라우팅 처리
