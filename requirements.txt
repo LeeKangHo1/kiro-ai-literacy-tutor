@@ -15,6 +15,7 @@ SQLAlchemy
 langgraph
 langchain
 langchain-openai
+langsmith
 openai
 
 # 벡터 데이터베이스

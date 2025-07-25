@@ -162,21 +162,31 @@
     - 사용자 정보 조회 및 수정 엔드포인트
     - _요구사항: 6.1, 6.2, 6.3_
 
-- [ ] 4. LangGraph 기반 멀티에이전트 시스템 구현
-  - [ ] 4.1 워크플로우 기본 구조 구현 (분할)
+- [x] 4. LangGraph 기반 멀티에이전트 시스템 구현
+
+
+
+
+  - [x] 4.1 워크플로우 기본 구조 구현 (분할)
+
+
     - graph_builder.py: StateGraph 구성 및 노드 연결
     - node_definitions.py: 각 에이전트 노드 정의
     - edge_conditions.py: 조건부 라우팅 엣지 정의
     - state_management.py: TutorState 관리 및 검증
     - _요구사항: 5.1, 5.2, 5.3_
 
-  - [ ] 4.2 LearningSupervisor 에이전트 구현 (분할)
+  - [x] 4.2 LearningSupervisor 에이전트 구현 (분할)
+
+
     - progress_analyzer.py: 학습 진도 분석 로직 구현
     - loop_manager.py: 루프 완료 처리 및 요약 생성 기능
     - decision_maker.py: 다음 단계 결정 로직 구현
     - _요구사항: 5.1, 5.2_
 
-  - [ ] 4.3 TheoryEducator 에이전트 구현 (분할)
+  - [x] 4.3 TheoryEducator 에이전트 구현 (분할)
+
+
     - content_generator.py: 기본 콘텐츠 생성 로직 구현
     - level_adapter.py: 사용자 레벨별 콘텐츠 적응 로직 구현
     - theory_tool.py: theory_generation_tool 구현
