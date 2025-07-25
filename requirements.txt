@@ -1,0 +1,53 @@
+# requirements.txt
+# Python 패키지 의존성
+
+# Flask 웹 프레임워크
+Flask
+Flask-CORS
+Flask-SQLAlchemy
+Flask-JWT-Extended
+
+# 데이터베이스
+PyMySQL
+SQLAlchemy
+
+# LangGraph 및 AI 관련
+langgraph
+langchain
+langchain-openai
+openai
+
+# 벡터 데이터베이스
+chromadb
+
+# 암호화 및 보안
+bcrypt
+PyJWT
+
+# 환경 변수 관리
+python-dotenv
+
+# 웹 스크래핑 및 검색
+requests
+beautifulsoup4
+
+# 유틸리티
+python-dateutil
+pydantic
+
+# 테스트
+pytest
+pytest-flask
+pytest-cov
+
+# 개발 도구
+black
+flake8
+isort
+
+# 로깅
+structlog
+
+# 비동기 처리
+celery
+redis

@@ -1,0 +1,2 @@
+-- migrations/init_schema.sql
+-- 데이터베이스 초기 스키마
