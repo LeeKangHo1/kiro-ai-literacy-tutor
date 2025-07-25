@@ -4,7 +4,7 @@
 from . import db, BaseModel
 from datetime import datetime
 from sqlalchemy import func
-from werkzeug.security import generate_password_hash, check_password_hash
+from utils.password_utils import hash_password, verify_password
 
 class User(db.Model, BaseModel):
     """사용자 모델"""
@@ -34,11 +34,11 @@ class User(db.Model, BaseModel):
     
     def set_password(self, password):
         """비밀번호 해시화하여 저장"""
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = hash_password(password)
     
     def check_password(self, password):
         """비밀번호 검증"""
-        return check_password_hash(self.password_hash, password)
+        return verify_password(password, self.password_hash)
     
     def get_learning_progress(self, chapter_id=None):
         """학습 진도 조회"""
