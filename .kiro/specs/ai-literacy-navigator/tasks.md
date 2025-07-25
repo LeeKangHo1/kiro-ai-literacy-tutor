@@ -122,13 +122,21 @@
     ```
   - _요구사항: 6.1, 6.2, 6.3_
 
-- [ ] 2. 데이터베이스 스키마 및 모델 구현
-  - [ ] 2.1 MySQL 데이터베이스 스키마 생성
+- [x] 2. 데이터베이스 스키마 및 모델 구현
+
+
+
+
+  - [x] 2.1 MySQL 데이터베이스 스키마 생성
+
+
     - USERS, CHAPTERS, USER_LEARNING_PROGRESS, LEARNING_LOOPS, CONVERSATIONS, QUIZ_ATTEMPTS 테이블 생성
     - 인덱스 및 외래키 제약조건 설정
     - _요구사항: 5.2, 5.3, 5.4_
 
-  - [ ] 2.2 SQLAlchemy ORM 모델 클래스 구현
+  - [x] 2.2 SQLAlchemy ORM 모델 클래스 구현
+
+
     - User, Chapter, UserLearningProgress, LearningLoop, Conversation, QuizAttempt 모델 클래스 작성
     - 모델 간 관계 설정 및 기본 CRUD 메서드 구현
     - _요구사항: 5.2, 5.3, 5.4_
