@@ -5,6 +5,7 @@ from typing import Dict, List, Any, Optional
 import json
 import random
 from datetime import datetime
+from workflow.state_management import TutorState, StateManager
 
 
 class QuestionGenerator:
@@ -145,6 +146,17 @@ class QuestionGenerator:
                 "correct_answer": 0,
                 "explanation": "AI는 컴퓨터가 인간의 지능적 행동을 모방하여 학습, 추론, 문제해결 등을 수행할 수 있는 기술입니다."
             },
+            2: {  # LLM이란 무엇인가?
+                "question": "LLM(Large Language Model)의 특징으로 가장 적절한 것은?",
+                "options": [
+                    "이미지만 처리할 수 있는 모델",
+                    "대규모 텍스트 데이터로 훈련된 언어 모델",
+                    "음성 인식만 가능한 모델",
+                    "숫자 계산만 수행하는 모델"
+                ],
+                "correct_answer": 1,
+                "explanation": "LLM은 대규모 텍스트 데이터로 사전훈련된 언어 모델로, 다양한 자연어 처리 태스크를 수행할 수 있습니다."
+            },
             3: {  # 프롬프트란 무엇인가?
                 "question": "효과적인 프롬프트 작성을 위한 핵심 요소가 아닌 것은?",
                 "options": [
@@ -155,6 +167,28 @@ class QuestionGenerator:
                 ],
                 "correct_answer": 2,
                 "explanation": "효과적인 프롬프트는 명확하고 이해하기 쉬운 언어를 사용해야 하며, 불필요하게 복잡한 전문용어는 피해야 합니다."
+            },
+            4: {  # ChatGPT로 할 수 있는 것들
+                "question": "ChatGPT의 주요 활용 분야가 아닌 것은?",
+                "options": [
+                    "텍스트 요약 및 번역",
+                    "창작 및 아이디어 생성",
+                    "실시간 주식 거래",
+                    "질문 답변 및 설명"
+                ],
+                "correct_answer": 2,
+                "explanation": "ChatGPT는 텍스트 기반 작업에 특화되어 있으며, 실시간 주식 거래와 같은 금융 거래는 직접 수행할 수 없습니다."
+            },
+            5: {  # AI 시대의 문해력
+                "question": "AI 시대에 필요한 문해력으로 가장 중요한 것은?",
+                "options": [
+                    "AI가 생성한 정보를 무조건 신뢰하기",
+                    "AI 도구를 비판적으로 활용하는 능력",
+                    "AI 기술을 완전히 배제하기",
+                    "AI에 모든 결정을 맡기기"
+                ],
+                "correct_answer": 1,
+                "explanation": "AI 시대의 문해력은 AI 도구를 비판적으로 평가하고 윤리적으로 활용하는 능력이 핵심입니다."
             }
         }
         
@@ -189,6 +223,20 @@ class QuestionGenerator:
                     "역할 정의의 명확성",
                     "톤과 스타일의 적절성",
                     "문제 해결 접근법의 체계성"
+                ]
+            },
+            4: {  # ChatGPT로 할 수 있는 것들
+                "scenario": "업무 효율성 향상",
+                "task_description": "긴 회의록을 요약하고 주요 액션 아이템을 추출하는 프롬프트를 작성하세요.",
+                "requirements": [
+                    "요약 형식과 길이 지정",
+                    "액션 아이템 구조화 요청",
+                    "담당자와 마감일 포함"
+                ],
+                "evaluation_criteria": [
+                    "구조화된 출력 요청",
+                    "실무 적용 가능성",
+                    "명확한 지시사항"
                 ]
             }
         }
@@ -233,6 +281,34 @@ class QuestionGenerator:
                     }
                 ]
             },
+            "chapter_2": {
+                "multiple_choice": [
+                    {
+                        "level": "low",
+                        "user_type": "beginner",
+                        "question": "LLM은 무엇의 줄임말인가요?",
+                        "options": ["Large Language Model", "Long Learning Method", "Latest Logic Machine", "Limited Language Mode"],
+                        "correct_answer": 0,
+                        "explanation": "LLM은 Large Language Model(대규모 언어 모델)의 줄임말입니다."
+                    },
+                    {
+                        "level": "medium",
+                        "user_type": "beginner",
+                        "question": "다음 중 GPT의 특징으로 가장 적절한 것은?",
+                        "options": ["이미지만 처리 가능", "텍스트 생성에 특화", "음성 인식 전용", "계산만 수행"],
+                        "correct_answer": 1,
+                        "explanation": "GPT는 Generative Pre-trained Transformer로 텍스트 생성에 특화된 모델입니다."
+                    },
+                    {
+                        "level": "medium",
+                        "user_type": "business",
+                        "question": "비즈니스에서 LLM 활용의 주요 이점은?",
+                        "options": ["문서 자동화", "고객 서비스 개선", "코드 생성 지원", "모든 것"],
+                        "correct_answer": 3,
+                        "explanation": "LLM은 문서 자동화, 고객 서비스, 코드 생성 등 다양한 비즈니스 영역에서 활용 가능합니다."
+                    }
+                ]
+            },
             "chapter_3": {
                 "multiple_choice": [
                     {
@@ -262,6 +338,68 @@ class QuestionGenerator:
                         ]
                     }
                 ]
+            },
+            "chapter_4": {
+                "multiple_choice": [
+                    {
+                        "level": "low",
+                        "user_type": "beginner",
+                        "question": "ChatGPT로 할 수 없는 것은?",
+                        "options": ["텍스트 요약", "언어 번역", "실시간 인터넷 검색", "질문 답변"],
+                        "correct_answer": 2,
+                        "explanation": "ChatGPT는 실시간 인터넷 검색은 기본적으로 지원하지 않습니다. (플러그인 제외)"
+                    },
+                    {
+                        "level": "medium",
+                        "user_type": "beginner",
+                        "question": "ChatGPT를 활용한 학습에서 가장 효과적인 방법은?",
+                        "options": ["모든 답을 그대로 믿기", "구체적으로 질문하기", "짧게만 질문하기", "한 번만 질문하기"],
+                        "correct_answer": 1,
+                        "explanation": "구체적이고 명확한 질문을 할 때 ChatGPT로부터 더 유용한 답변을 얻을 수 있습니다."
+                    },
+                    {
+                        "level": "medium",
+                        "user_type": "business",
+                        "question": "업무에서 ChatGPT 활용 시 주의사항은?",
+                        "options": ["개인정보 입력 금지", "결과 검증 필요", "저작권 고려", "모든 것"],
+                        "correct_answer": 3,
+                        "explanation": "업무에서 ChatGPT 사용 시 개인정보 보호, 결과 검증, 저작권 등 모든 사항을 고려해야 합니다."
+                    }
+                ],
+                "prompt_practice": [
+                    {
+                        "level": "low",
+                        "user_type": "beginner",
+                        "scenario": "학습 도우미",
+                        "task_description": "어려운 개념을 쉽게 설명해달라는 프롬프트를 작성하세요.",
+                        "requirements": [
+                            "구체적인 개념 명시",
+                            "설명 수준 지정",
+                            "예시 요청 포함"
+                        ],
+                        "evaluation_criteria": [
+                            "명확성",
+                            "구체성",
+                            "이해하기 쉬운 표현"
+                        ]
+                    },
+                    {
+                        "level": "medium",
+                        "user_type": "business",
+                        "scenario": "업무 효율화",
+                        "task_description": "회의록을 요약하고 액션 아이템을 추출하는 프롬프트를 작성하세요.",
+                        "requirements": [
+                            "요약 형식 지정",
+                            "액션 아이템 구조화",
+                            "우선순위 표시 요청"
+                        ],
+                        "evaluation_criteria": [
+                            "구조화된 출력",
+                            "실용성",
+                            "완성도"
+                        ]
+                    }
+                ]
             }
         }
     
@@ -272,8 +410,111 @@ class QuestionGenerator:
                 "title": "AI는 무엇인가?",
                 "key_concepts": ["인공지능", "머신러닝", "딥러닝", "AI vs ML vs DL"]
             },
+            2: {
+                "title": "LLM이란 무엇인가?",
+                "key_concepts": ["LLM", "GPT", "BERT", "Transformer", "토큰", "파라미터"]
+            },
             3: {
                 "title": "프롬프트란 무엇인가?",
                 "key_concepts": ["프롬프트 엔지니어링", "명령어 구조", "맥락 제공", "출력 형식"]
+            },
+            4: {
+                "title": "ChatGPT로 할 수 있는 것들",
+                "key_concepts": ["텍스트 생성", "요약", "번역", "질문 생성", "업무 자동화"]
+            },
+            5: {
+                "title": "AI 시대의 문해력",
+                "key_concepts": ["AI 윤리", "편향성", "개인정보보호", "디지털 리터러시"]
             }
         }
+    
+    def generate_quiz_with_ui(self, state: TutorState, quiz_type: str = "multiple_choice") -> TutorState:
+        """UI 모드 관리와 함께 퀴즈 생성"""
+        try:
+            # 사용자 입력 수신 이벤트 처리 (로딩 상태로 전환)
+            state = StateManager.handle_ui_transition(
+                state, "user_input_received", "quiz_generator"
+            )
+            
+            # 퀴즈 생성
+            if quiz_type == "multiple_choice":
+                quiz_data = self.generate_multiple_choice_question(
+                    state['current_chapter'],
+                    state['user_level'],
+                    state['user_type']
+                )
+            else:  # prompt_practice
+                quiz_data = self.generate_prompt_question(
+                    state['current_chapter'],
+                    state['user_level'],
+                    state['user_type']
+                )
+            
+            # 시스템 메시지 생성
+            system_message = self._format_quiz_for_display(quiz_data)
+            
+            # 상태 업데이트
+            state['system_message'] = system_message
+            state['current_stage'] = 'quiz'
+            
+            # 대화 기록 추가
+            state = StateManager.add_conversation(
+                state,
+                "quiz_generator",
+                state.get('user_message', ''),
+                system_message,
+                {'quiz_data': quiz_data}
+            )
+            
+            # UI 상태 업데이트 (퀴즈 모드로 전환)
+            ui_context = {
+                'quiz_type': quiz_type,
+                'question': quiz_data.get('question_text') or quiz_data.get('task_description'),
+                'options': quiz_data.get('options', []),
+                'hint_available': True,
+                'title': '문제 풀이',
+                'quiz_info': quiz_data
+            }
+            
+            state = StateManager.handle_ui_transition(
+                state, "agent_response_ready", "quiz_generator", ui_context
+            )
+            
+        except Exception as e:
+            # 오류 처리
+            state['system_message'] = f"퀴즈 생성 중 오류가 발생했습니다: {str(e)}"
+            state = StateManager.handle_ui_transition(
+                state, "error_occurred", "quiz_generator",
+                {'error_message': str(e)}
+            )
+        
+        return state
+    
+    def _format_quiz_for_display(self, quiz_data: Dict[str, Any]) -> str:
+        """퀴즈를 표시용 텍스트로 포맷팅"""
+        formatted_parts = []
+        
+        if quiz_data['question_type'] == 'multiple_choice':
+            # 객관식 문제 포맷팅
+            formatted_parts.append(f"## 📝 객관식 문제\n")
+            formatted_parts.append(f"**문제:** {quiz_data['question_text']}\n")
+            
+            for i, option in enumerate(quiz_data['options']):
+                formatted_parts.append(f"{i+1}. {option}")
+            
+            formatted_parts.append("\n정답을 선택해주세요.")
+            
+        else:  # prompt_practice
+            # 프롬프트 실습 문제 포맷팅
+            formatted_parts.append(f"## ✍️ 프롬프트 작성 실습\n")
+            formatted_parts.append(f"**상황:** {quiz_data['scenario']}\n")
+            formatted_parts.append(f"**과제:** {quiz_data['task_description']}\n")
+            
+            if quiz_data.get('requirements'):
+                formatted_parts.append("**요구사항:**")
+                for req in quiz_data['requirements']:
+                    formatted_parts.append(f"• {req}")
+            
+            formatted_parts.append("\n프롬프트를 작성해주세요.")
+        
+        return "\n".join(formatted_parts)

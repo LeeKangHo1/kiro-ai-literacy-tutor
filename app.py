@@ -22,11 +22,13 @@ def create_app():
     from blueprints.learning import learning_bp
     from blueprints.user import user_bp
     from blueprints.feedback import feedback_bp
+    from blueprints.ui_sync import ui_sync_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(learning_bp, url_prefix='/api/learning')
     app.register_blueprint(user_bp, url_prefix='/api/user')
     app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
+    app.register_blueprint(ui_sync_bp, url_prefix='/api/ui')
     
     return app
 

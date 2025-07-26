@@ -220,3 +220,59 @@ class StateManager:
         state['system_message'] = message
         state['ui_elements'] = ui_elements
         return state
+    
+    @staticmethod
+    def update_ui_state_for_agent(state: TutorState, agent_name: str, 
+                                context: Optional[Dict] = None) -> TutorState:
+        """에이전트별 UI 상태 업데이트"""
+        try:
+            from services.agent_ui_service import get_agent_ui_generator
+            from services.ui_mode_service import UIStateSerializer
+            
+            ui_generator = get_agent_ui_generator()
+            ui_state = ui_generator.generate_ui_for_agent(agent_name, state, context)
+            
+            # UI 상태를 직렬화하여 state에 저장
+            serialized_ui = UIStateSerializer.serialize_ui_state(ui_state)
+            state['ui_elements'] = serialized_ui
+            state['ui_mode'] = ui_state.mode.value
+            
+        except Exception as e:
+            # UI 생성 실패 시 기본 UI 설정
+            state['ui_mode'] = 'error'
+            state['ui_elements'] = {
+                "mode": "error",
+                "elements": [],
+                "title": "UI 오류",
+                "description": f"UI 생성 중 오류가 발생했습니다: {str(e)}"
+            }
+        
+        return state
+    
+    @staticmethod
+    def handle_ui_transition(state: TutorState, event: str, agent_name: str,
+                           context: Optional[Dict] = None) -> TutorState:
+        """UI 전환 이벤트 처리"""
+        try:
+            from services.agent_ui_service import get_ui_transition_manager
+            from services.ui_mode_service import UIStateSerializer
+            
+            transition_manager = get_ui_transition_manager()
+            ui_state = transition_manager.handle_transition(event, agent_name, state, context)
+            
+            # UI 상태를 직렬화하여 state에 저장
+            serialized_ui = UIStateSerializer.serialize_ui_state(ui_state)
+            state['ui_elements'] = serialized_ui
+            state['ui_mode'] = ui_state.mode.value
+            
+        except Exception as e:
+            # 전환 실패 시 오류 상태로 설정
+            state['ui_mode'] = 'error'
+            state['ui_elements'] = {
+                "mode": "error",
+                "elements": [],
+                "title": "전환 오류",
+                "description": f"UI 전환 중 오류가 발생했습니다: {str(e)}"
+            }
+        
+        return state

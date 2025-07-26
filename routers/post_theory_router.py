@@ -106,21 +106,25 @@ class PostTheoryRouter:
         # 상태 업데이트
         state['current_stage'] = 'qna'
         state['qa_source_router'] = 'post_theory'
-        state['ui_mode'] = 'chat'
         
         # 대화 기록 추가
         StateManager.add_conversation(
             state, 
-            'PostTheoryRouter',
+            'post_theory_router',
             user_message=state['user_message'],
             system_response="질문을 QnAResolver로 전달합니다."
         )
         
-        # 시스템 메시지 설정
-        StateManager.set_system_response(
-            state,
-            "질문을 분석하여 답변을 준비하고 있습니다...",
-            ui_elements={'type': 'loading', 'message': '답변 준비 중'}
+        # UI 상태 업데이트 (채팅 모드로 전환)
+        ui_context = {
+            'title': '질문 답변',
+            'description': '질문을 분석하여 답변을 준비하고 있습니다...',
+            'loading': True,
+            'loading_message': '답변 준비 중'
+        }
+        
+        state = StateManager.handle_ui_transition(
+            state, "user_input_received", "qna_resolver", ui_context
         )
         
         return state
@@ -129,22 +133,26 @@ class PostTheoryRouter:
         """QuizGenerator로 라우팅"""
         # 상태 업데이트
         state['current_stage'] = 'quiz'
-        state['ui_mode'] = 'quiz'
         
         # 대화 기록 추가
         response_message = message or "문제 출제를 QuizGenerator로 전달합니다."
         StateManager.add_conversation(
             state,
-            'PostTheoryRouter',
+            'post_theory_router',
             user_message=state['user_message'],
             system_response=response_message
         )
         
-        # 시스템 메시지 설정
-        StateManager.set_system_response(
-            state,
-            message or "문제를 준비하고 있습니다...",
-            ui_elements={'type': 'loading', 'message': '문제 생성 중'}
+        # UI 상태 업데이트 (퀴즈 모드로 전환)
+        ui_context = {
+            'title': '문제 풀이',
+            'description': message or '문제를 준비하고 있습니다...',
+            'loading': True,
+            'loading_message': '문제 생성 중'
+        }
+        
+        state = StateManager.handle_ui_transition(
+            state, "user_input_received", "quiz_generator", ui_context
         )
         
         return state
@@ -158,29 +166,23 @@ class PostTheoryRouter:
             "• 다음 단계로 넘어가고 싶으시면 '다음' 또는 '계속'이라고 말씀해 주세요"
         )
         
-        # UI 모드를 채팅으로 유지
-        state['ui_mode'] = 'chat'
-        
         # 대화 기록 추가
         StateManager.add_conversation(
             state,
-            'PostTheoryRouter',
+            'post_theory_router',
             user_message=state['user_message'],
             system_response=clarification_message
         )
         
-        # 시스템 메시지 설정
-        StateManager.set_system_response(
-            state,
-            clarification_message,
-            ui_elements={
-                'type': 'clarification',
-                'options': [
-                    {'text': '질문하기', 'action': 'question'},
-                    {'text': '문제 풀기', 'action': 'quiz'},
-                    {'text': '다음 단계', 'action': 'proceed'}
-                ]
-            }
+        # UI 상태 업데이트 (제한된 선택 모드로 전환)
+        ui_context = {
+            'title': '다음 단계 선택',
+            'description': clarification_message,
+            'available_actions': ['ask_question', 'take_quiz', 'continue_learning']
+        }
+        
+        state = StateManager.handle_ui_transition(
+            state, "agent_response_ready", "post_theory_router", ui_context
         )
         
         return state

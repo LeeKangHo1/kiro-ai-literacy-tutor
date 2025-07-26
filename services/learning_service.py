@@ -9,7 +9,9 @@ from models.quiz_attempt import QuizAttempt
 from utils.response_utils import create_response
 from services.database_service import DatabaseService
 from workflow.graph_builder import TutorWorkflow
-from workflow.state_management import TutorState
+from workflow.state_management import TutorState, StateManager
+from services.ui_mode_service import UIStateSerializer
+from services.websocket_service import get_websocket_manager
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -219,7 +221,7 @@ class LearningService:
     @staticmethod
     def process_chat_message(user_id: int, message: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
-        채팅 메시지 처리 (LangGraph 워크플로우 실행)
+        채팅 메시지 처리 (LangGraph 워크플로우 실행 + UI 모드 관리)
         
         Args:
             user_id: 사용자 ID
@@ -238,52 +240,218 @@ class LearningService:
                     error_code="USER_NOT_FOUND"
                 )
             
-            # 현재 학습 상태 조회
+            # 현재 학습 상태 조회 또는 생성
             current_context = context or {}
             current_chapter = current_context.get('current_chapter', 1)
+            current_stage = current_context.get('stage', 'theory')
+            loop_id = current_context.get('loop_id')
             
-            # TutorState 초기화
-            state = TutorState(
-                user_id=str(user_id),
-                user_message=message,
-                current_chapter=current_chapter,
-                current_stage='chat',
-                user_level=user.user_level,
-                user_type=user.user_type,
-                qa_source_router='chat',
-                ui_mode='chat',
-                current_loop_conversations=[],
-                recent_loops_summary=[],
-                current_loop_id=str(uuid.uuid4()),
-                loop_start_time=datetime.utcnow(),
-                system_message='',
-                ui_elements=None
+            # 기존 상태가 있으면 복원, 없으면 새로 생성
+            if loop_id:
+                state = LearningService._restore_or_create_state(
+                    user_id, user, message, current_chapter, current_stage, loop_id
+                )
+            else:
+                state = StateManager.create_initial_state(str(user_id), user.user_type, user.user_level)
+                state['user_message'] = message
+                state['current_chapter'] = current_chapter
+                state['current_stage'] = current_stage
+            
+            # 사용자 입력 수신 이벤트 처리 (UI를 로딩 상태로 전환)
+            state = StateManager.handle_ui_transition(
+                state, "user_input_received", current_stage
             )
+            
+            # WebSocket을 통한 실시간 UI 업데이트
+            websocket_manager = get_websocket_manager()
+            if state.get('ui_elements'):
+                await websocket_manager.broadcast_ui_update(
+                    str(user_id), 
+                    state['ui_elements'], 
+                    current_stage
+                )
             
             # LangGraph 워크플로우 실행
             workflow = TutorWorkflow()
             result_state = workflow.execute(state)
             
+            # 에이전트 응답 준비 완료 이벤트 처리
+            current_agent = result_state.get('current_stage', 'learning_supervisor')
+            result_state = StateManager.handle_ui_transition(
+                result_state, "agent_response_ready", current_agent
+            )
+            
+            # 최종 UI 상태 브로드캐스트
+            if result_state.get('ui_elements'):
+                await websocket_manager.broadcast_ui_update(
+                    str(user_id),
+                    result_state['ui_elements'],
+                    current_agent
+                )
+            
+            # 대화 기록 저장
+            LearningService._save_conversation_to_db(result_state)
+            
             # 응답 구성
+            response_data = {
+                'response': result_state.get('system_message', ''),
+                'ui_mode': result_state.get('ui_mode', 'chat'),
+                'ui_elements': result_state.get('ui_elements'),
+                'current_stage': result_state.get('current_stage'),
+                'current_agent': current_agent,
+                'loop_id': result_state.get('current_loop_id'),
+                'chapter': result_state.get('current_chapter'),
+                'user_context': {
+                    'user_type': result_state.get('user_type'),
+                    'user_level': result_state.get('user_level')
+                }
+            }
+            
             return create_response(
                 success=True,
                 message="메시지가 처리되었습니다.",
-                data={
-                    'response': result_state.get('system_message', ''),
-                    'ui_mode': result_state.get('ui_mode', 'chat'),
-                    'ui_elements': result_state.get('ui_elements'),
-                    'current_stage': result_state.get('current_stage'),
-                    'loop_id': result_state.get('current_loop_id')
-                }
+                data=response_data
             )
             
         except Exception as e:
             logger.error(f"채팅 메시지 처리 중 오류: {str(e)}")
+            
+            # 오류 발생 시 UI를 오류 상태로 전환
+            try:
+                error_state = StateManager.create_initial_state(str(user_id))
+                error_state = StateManager.handle_ui_transition(
+                    error_state, "error_occurred", "system",
+                    {'error_message': str(e)}
+                )
+                
+                # 오류 상태 브로드캐스트
+                websocket_manager = get_websocket_manager()
+                if error_state.get('ui_elements'):
+                    await websocket_manager.broadcast_ui_update(
+                        str(user_id),
+                        error_state['ui_elements'],
+                        "system"
+                    )
+            except:
+                pass  # 오류 처리 중 추가 오류 발생 시 무시
+            
             return create_response(
                 success=False,
                 message="메시지 처리 중 오류가 발생했습니다.",
-                error_code="CHAT_PROCESSING_ERROR"
+                error_code="CHAT_PROCESSING_ERROR",
+                data={
+                    'ui_mode': 'error',
+                    'ui_elements': {
+                        'mode': 'error',
+                        'title': '오류 발생',
+                        'description': '메시지 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+                        'elements': [
+                            {
+                                'element_type': 'button',
+                                'element_id': 'retry_button',
+                                'label': '다시 시도',
+                                'style': {'variant': 'primary'}
+                            }
+                        ]
+                    }
+                }
             )
+    
+    @staticmethod
+    def _restore_or_create_state(user_id: int, user: User, message: str, 
+                               chapter: int, stage: str, loop_id: str) -> TutorState:
+        """기존 상태 복원 또는 새 상태 생성"""
+        try:
+            # 데이터베이스에서 기존 루프 조회
+            existing_loop = LearningLoop.query.filter_by(
+                loop_id=loop_id, 
+                user_id=user_id
+            ).first()
+            
+            if existing_loop and existing_loop.loop_status == 'active':
+                # 기존 대화 기록 조회
+                conversations = Conversation.query.filter_by(
+                    loop_id=loop_id
+                ).order_by(Conversation.sequence_order).all()
+                
+                # 상태 복원
+                state = StateManager.create_initial_state(str(user_id), user.user_type, user.user_level)
+                state['current_loop_id'] = loop_id
+                state['current_chapter'] = chapter
+                state['current_stage'] = stage
+                state['user_message'] = message
+                
+                # 대화 기록 복원
+                current_conversations = []
+                for conv in conversations:
+                    current_conversations.append({
+                        'agent_name': conv.agent_name,
+                        'user_message': conv.user_message,
+                        'system_response': conv.system_response,
+                        'ui_elements': conv.ui_elements,
+                        'timestamp': conv.timestamp.isoformat(),
+                        'sequence_order': conv.sequence_order
+                    })
+                
+                state['current_loop_conversations'] = current_conversations
+                
+                return state
+            
+        except Exception as e:
+            logger.warning(f"상태 복원 실패, 새 상태 생성: {e}")
+        
+        # 복원 실패 시 새 상태 생성
+        state = StateManager.create_initial_state(str(user_id), user.user_type, user.user_level)
+        state['user_message'] = message
+        state['current_chapter'] = chapter
+        state['current_stage'] = stage
+        
+        return state
+    
+    @staticmethod
+    def _save_conversation_to_db(state: TutorState):
+        """대화 기록을 데이터베이스에 저장"""
+        try:
+            loop_id = state.get('current_loop_id')
+            user_id = int(state.get('user_id'))
+            
+            # 학습 루프 확인/생성
+            existing_loop = LearningLoop.query.filter_by(loop_id=loop_id).first()
+            if not existing_loop:
+                new_loop = LearningLoop(
+                    loop_id=loop_id,
+                    user_id=user_id,
+                    chapter_id=state.get('current_chapter'),
+                    loop_sequence=1,  # 실제로는 계산 필요
+                    loop_status='active'
+                )
+                DatabaseService.save(new_loop)
+            
+            # 현재 루프의 새로운 대화만 저장
+            current_conversations = state.get('current_loop_conversations', [])
+            if current_conversations:
+                latest_conversation = current_conversations[-1]
+                
+                # 이미 저장된 대화인지 확인
+                existing_conv = Conversation.query.filter_by(
+                    loop_id=loop_id,
+                    sequence_order=latest_conversation.get('sequence_order')
+                ).first()
+                
+                if not existing_conv:
+                    new_conversation = Conversation(
+                        loop_id=loop_id,
+                        agent_name=latest_conversation.get('agent_name'),
+                        message_type='system',
+                        user_message=latest_conversation.get('user_message'),
+                        system_response=latest_conversation.get('system_response'),
+                        ui_elements=latest_conversation.get('ui_elements'),
+                        sequence_order=latest_conversation.get('sequence_order')
+                    )
+                    DatabaseService.save(new_conversation)
+            
+        except Exception as e:
+            logger.error(f"대화 기록 저장 실패: {e}")
     
     @staticmethod
     def get_available_chapters(user_id: int) -> Dict[str, Any]:
