@@ -311,21 +311,32 @@
     - 학습 기록 조회 API 구현
     - _요구사항: 5.3, 5.4_
 
-- [ ] 10. REST API 엔드포인트 구현 (분할)
-  - [ ] 10.1 인증 관련 API 구현
+- [x] 10. REST API 엔드포인트 구현 (분할)
+
+
+
+
+
+  - [x] 10.1 인증 관련 API 구현
+
+
     - login.py: 로그인 API 엔드포인트
     - register.py: 회원가입 API 엔드포인트
     - token.py: JWT 토큰 관리 API
     - _요구사항: 6.1, 6.2, 6.3_
 
-  - [ ] 10.2 학습 관련 API 구현
+  - [x] 10.2 학습 관련 API 구현
+
+
     - diagnosis.py: 진단 퀴즈 API 엔드포인트
     - chat.py: 메시지 처리 API 엔드포인트
     - progress.py: 학습 진도 관리 API
     - chapter.py: 챕터 관리 API
     - _요구사항: 1.1, 1.2, 2.1_
 
-  - [ ] 10.3 사용자 데이터 관리 API 구현
+  - [x] 10.3 사용자 데이터 관리 API 구현
+
+
     - profile.py: 사용자 프로필 관리 API
     - stats.py: 학습 통계 및 기록 API
     - _요구사항: 5.3, 5.4_

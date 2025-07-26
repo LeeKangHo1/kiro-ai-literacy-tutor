@@ -278,3 +278,31 @@ def validate_pagination_params(page: str, per_page: str, max_per_page: int = 100
     except Exception as e:
         logger.error(f"페이지네이션 파라미터 검증 중 오류 발생: {str(e)}")
         return False, "페이지네이션 파라미터 검증 중 오류가 발생했습니다.", 0, 0
+
+
+class ValidationUtils:
+    """검증 유틸리티 클래스"""
+    
+    @staticmethod
+    def validate_email(email: str) -> bool:
+        """이메일 유효성 검증"""
+        is_valid, _ = validate_email(email)
+        return is_valid
+    
+    @staticmethod
+    def validate_username(username: str) -> bool:
+        """사용자명 유효성 검증"""
+        is_valid, _ = validate_username(username)
+        return is_valid
+    
+    @staticmethod
+    def validate_user_type(user_type: str) -> bool:
+        """사용자 유형 유효성 검증"""
+        is_valid, _ = validate_user_type(user_type)
+        return is_valid
+    
+    @staticmethod
+    def validate_user_level(user_level: str) -> bool:
+        """사용자 레벨 유효성 검증"""
+        is_valid, _ = validate_user_level(user_level)
+        return is_valid

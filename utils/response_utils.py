@@ -8,6 +8,43 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def create_response(success: bool, message: str, data: Any = None, error_code: str = None) -> Dict:
+    """
+    표준 응답 형식 생성
+    
+    Args:
+        success: 성공 여부
+        message: 응답 메시지
+        data: 응답 데이터 (선택사항)
+        error_code: 오류 코드 (선택사항)
+        
+    Returns:
+        표준 응답 딕셔너리
+    """
+    try:
+        response_data = {
+            'success': success,
+            'message': message,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        
+        if data is not None:
+            response_data['data'] = data
+        
+        if error_code:
+            response_data['error_code'] = error_code
+        
+        return response_data
+        
+    except Exception as e:
+        logger.error(f"응답 생성 중 오류 발생: {str(e)}")
+        return {
+            'success': False,
+            'message': '응답 생성 중 오류가 발생했습니다.',
+            'error_code': 'RESPONSE_GENERATION_ERROR',
+            'timestamp': datetime.utcnow().isoformat()
+        }
+
 def success_response(message: str, data: Any = None, status_code: int = 200) -> tuple:
     """
     성공 응답 생성
