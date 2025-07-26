@@ -20,11 +20,11 @@ class ChatGPTResponse(BaseModel):
     """ChatGPT API 응답 모델"""
     success: bool = Field(description="API 호출 성공 여부")
     content: str = Field(description="생성된 응답 내용")
-    usage: Optional[Dict[str, int]] = Field(description="토큰 사용량 정보")
+    usage: Optional[Dict[str, int]] = Field(default=None, description="토큰 사용량 정보")
     model: str = Field(description="사용된 모델명")
     response_time: float = Field(description="응답 시간(초)")
-    error_message: Optional[str] = Field(description="오류 메시지")
-    quality_score: Optional[float] = Field(description="응답 품질 점수")
+    error_message: Optional[str] = Field(default=None, description="오류 메시지")
+    quality_score: Optional[float] = Field(default=None, description="응답 품질 점수")
 
 class PromptQualityAnalyzer:
     """프롬프트 품질 분석기"""
@@ -101,14 +101,16 @@ class ChatGPTAPIManager:
         try:
             api_key = os.getenv("OPENAI_API_KEY")
             if not api_key:
-                raise ValueError("OPENAI_API_KEY 환경 변수가 설정되지 않았습니다.")
+                logger.warning("OPENAI_API_KEY 환경 변수가 설정되지 않았습니다. 오프라인 모드로 동작합니다.")
+                self.client = None
+                return
             
             self.client = OpenAI(api_key=api_key)
             logger.info("OpenAI 클라이언트가 성공적으로 초기화되었습니다.")
             
         except Exception as e:
             logger.error(f"OpenAI 클라이언트 초기화 실패: {str(e)}")
-            raise
+            self.client = None
     
     def _handle_api_error(self, error: Exception, attempt: int) -> Optional[str]:
         """API 오류 처리"""
@@ -187,6 +189,28 @@ class ChatGPTAPIManager:
         if system_message:
             messages.append({"role": "system", "content": system_message})
         messages.append({"role": "user", "content": prompt})
+        
+        # 클라이언트가 초기화되지 않은 경우 (오프라인 모드)
+        if not self.client:
+            response_time = time.time() - start_time
+            error_message = "OpenAI API 클라이언트가 초기화되지 않았습니다. API 키를 확인해주세요."
+            
+            # 실패한 API 호출 로깅
+            log_api_call(
+                endpoint="chat/completions",
+                success=False,
+                response_time=response_time,
+                error_message=error_message,
+                model=self.model
+            )
+            
+            return ChatGPTResponse(
+                success=False,
+                content="",
+                model=self.model,
+                response_time=response_time,
+                error_message=error_message
+            )
         
         # API 호출 시도
         for attempt in range(self.max_retries):

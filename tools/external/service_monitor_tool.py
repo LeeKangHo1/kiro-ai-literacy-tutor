@@ -11,6 +11,18 @@ from .api_monitor import api_monitor
 # 로깅 설정
 logger = logging.getLogger(__name__)
 
+def _parse_timestamp(timestamp):
+    """타임스탬프 파싱 헬퍼 함수"""
+    if isinstance(timestamp, str):
+        try:
+            return datetime.fromisoformat(timestamp)
+        except ValueError:
+            return datetime.now()
+    elif isinstance(timestamp, datetime):
+        return timestamp
+    else:
+        return datetime.now()
+
 @tool
 def get_service_health_status() -> Dict[str, Any]:
     """
@@ -81,10 +93,19 @@ def get_error_report(hours: int = 24) -> Dict[str, Any]:
         status_history = api_monitor.get_status_history()
         
         # 최근 상태 변경 필터링
-        recent_status_changes = [
-            change for change in status_history
-            if datetime.fromisoformat(change["timestamp"]) > datetime.now() - timedelta(hours=hours)
-        ]
+        recent_status_changes = []
+        for change in status_history:
+            try:
+                if isinstance(change["timestamp"], str):
+                    change_time = datetime.fromisoformat(change["timestamp"])
+                else:
+                    change_time = change["timestamp"]
+                
+                if change_time > datetime.now() - timedelta(hours=hours):
+                    recent_status_changes.append(change)
+            except (ValueError, KeyError, TypeError):
+                # 날짜 파싱 실패 시 건너뛰기
+                continue
         
         return {
             "period_hours": hours,
@@ -96,7 +117,7 @@ def get_error_report(hours: int = 24) -> Dict[str, Any]:
             },
             "status_changes": len(recent_status_changes),
             "recent_status_changes": recent_status_changes[-5:],  # 최근 5개만
-            "recommendations": self._generate_recommendations(error_stats),
+            "recommendations": _generate_recommendations(error_stats),
             "timestamp": datetime.now().isoformat()
         }
         
