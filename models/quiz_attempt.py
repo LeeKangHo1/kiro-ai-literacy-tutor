@@ -31,7 +31,7 @@ class QuizAttempt(db.Model, BaseModel):
         nullable=False, index=True
     )
     attempt_timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    metadata = db.Column(db.JSON)  # 추가 메타데이터
+    quiz_metadata = db.Column(db.JSON)  # 추가 메타데이터
     
     # 인덱스 설정
     __table_args__ = (
@@ -40,7 +40,7 @@ class QuizAttempt(db.Model, BaseModel):
     
     def __init__(self, user_id, chapter_id, quiz_type, question_content, 
                  difficulty_level, loop_id=None, user_answer=None, correct_answer=None,
-                 hint_used=False, hint_content=None, metadata=None):
+                 hint_used=False, hint_content=None, quiz_metadata=None):
         self.user_id = user_id
         self.chapter_id = chapter_id
         self.loop_id = loop_id
@@ -51,7 +51,7 @@ class QuizAttempt(db.Model, BaseModel):
         self.difficulty_level = difficulty_level
         self.hint_used = hint_used
         self.hint_content = hint_content
-        self.metadata = metadata or {}
+        self.quiz_metadata = quiz_metadata or {}
     
     def evaluate_answer(self, user_answer, feedback=None):
         """답변 평가 및 점수 계산"""
@@ -121,13 +121,13 @@ class QuizAttempt(db.Model, BaseModel):
     
     def get_metadata(self):
         """메타데이터 반환"""
-        return self.metadata or {}
+        return self.quiz_metadata or {}
     
     def update_metadata(self, key, value):
         """메타데이터 업데이트"""
-        if not self.metadata:
-            self.metadata = {}
-        self.metadata[key] = value
+        if not self.quiz_metadata:
+            self.quiz_metadata = {}
+        self.quiz_metadata[key] = value
         self.save()
     
     def get_performance_summary(self):

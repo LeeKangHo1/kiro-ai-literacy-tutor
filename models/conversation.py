@@ -26,7 +26,7 @@ class Conversation(db.Model, BaseModel):
     processing_time_ms = db.Column(db.Integer, default=0)  # 처리 시간 (밀리초)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     sequence_order = db.Column(db.Integer, nullable=False, index=True)
-    metadata = db.Column(db.JSON)  # 추가 메타데이터
+    conv_metadata = db.Column(db.JSON)  # 추가 메타데이터
     
     # 복합 유니크 제약조건
     __table_args__ = (
@@ -35,7 +35,7 @@ class Conversation(db.Model, BaseModel):
     
     def __init__(self, loop_id, agent_name, message_type, sequence_order,
                  user_message=None, system_response=None, ui_elements=None, 
-                 ui_mode='chat', processing_time_ms=0, metadata=None):
+                 ui_mode='chat', processing_time_ms=0, conv_metadata=None):
         self.loop_id = loop_id
         self.agent_name = agent_name
         self.message_type = message_type
@@ -45,7 +45,7 @@ class Conversation(db.Model, BaseModel):
         self.ui_elements = ui_elements or {}
         self.ui_mode = ui_mode
         self.processing_time_ms = processing_time_ms
-        self.metadata = metadata or {}
+        self.conv_metadata = conv_metadata or {}
     
     def get_ui_elements(self):
         """UI 요소 반환"""
@@ -68,13 +68,13 @@ class Conversation(db.Model, BaseModel):
     
     def get_metadata(self):
         """메타데이터 반환"""
-        return self.metadata or {}
+        return self.conv_metadata or {}
     
     def update_metadata(self, key, value):
         """메타데이터 업데이트"""
-        if not self.metadata:
-            self.metadata = {}
-        self.metadata[key] = value
+        if not self.conv_metadata:
+            self.conv_metadata = {}
+        self.conv_metadata[key] = value
         self.save()
     
     def get_message_content(self):

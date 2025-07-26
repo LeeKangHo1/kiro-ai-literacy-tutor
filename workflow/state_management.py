@@ -107,6 +107,31 @@ class StateManager:
         return state
     
     @staticmethod
+    def complete_current_loop(state: TutorState, summary: str = None) -> TutorState:
+        """현재 루프 완료 처리"""
+        if state['current_loop_conversations']:
+            # 자동 요약 생성 또는 제공된 요약 사용
+            if not summary:
+                summary_dict = StateManager._create_loop_summary(state)
+                summary = f"루프 {summary_dict['loop_id'][:8]}: {summary_dict['main_topics']}"
+            
+            # 완료된 루프를 요약에 추가
+            completed_summary = StateManager._create_loop_summary(state)
+            completed_summary['summary'] = summary
+            completed_summary['status'] = 'completed'
+            
+            state['recent_loops_summary'].append(completed_summary)
+            
+            # 최대 5개 루프 요약만 유지
+            if len(state['recent_loops_summary']) > 5:
+                state['recent_loops_summary'] = state['recent_loops_summary'][-5:]
+            
+            # 현재 루프 초기화
+            state['current_loop_conversations'] = []
+        
+        return state
+    
+    @staticmethod
     def add_conversation(state: TutorState, agent_name: str, 
                         user_message: str = "", system_response: str = "",
                         ui_elements: Optional[Dict[str, Any]] = None) -> TutorState:

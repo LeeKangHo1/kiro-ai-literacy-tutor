@@ -27,7 +27,7 @@ class LearningLoop(db.Model, BaseModel):
     completed_at = db.Column(db.DateTime, index=True)
     duration_minutes = db.Column(db.Integer, default=0)  # 루프 소요 시간 (분)
     interaction_count = db.Column(db.Integer, default=0)  # 상호작용 횟수
-    metadata = db.Column(db.JSON)  # 추가 메타데이터
+    loop_metadata = db.Column(db.JSON)  # 추가 메타데이터
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -41,13 +41,13 @@ class LearningLoop(db.Model, BaseModel):
         db.Index('idx_user_chapter', 'user_id', 'chapter_id'),
     )
     
-    def __init__(self, user_id, chapter_id, loop_type='mixed', metadata=None):
+    def __init__(self, user_id, chapter_id, loop_type='mixed', loop_metadata=None):
         self.loop_id = self.generate_loop_id()
         self.user_id = user_id
         self.chapter_id = chapter_id
         self.loop_type = loop_type
         self.loop_sequence = self.get_next_sequence_number()
-        self.metadata = metadata or {}
+        self.loop_metadata = loop_metadata or {}
     
     @staticmethod
     def generate_loop_id():
@@ -95,9 +95,9 @@ class LearningLoop(db.Model, BaseModel):
         self.completed_at = datetime.utcnow()
         
         if reason:
-            if not self.metadata:
-                self.metadata = {}
-            self.metadata['abandon_reason'] = reason
+            if not self.loop_metadata:
+                self.loop_metadata = {}
+            self.loop_metadata['abandon_reason'] = reason
         
         self.save()
     
@@ -241,9 +241,9 @@ class LearningLoop(db.Model, BaseModel):
     
     def update_metadata(self, key, value):
         """메타데이터 업데이트"""
-        if not self.metadata:
-            self.metadata = {}
-        self.metadata[key] = value
+        if not self.loop_metadata:
+            self.loop_metadata = {}
+        self.loop_metadata[key] = value
         self.save()
     
     def __repr__(self):
