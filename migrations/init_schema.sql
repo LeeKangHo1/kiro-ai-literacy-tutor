@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS LEARNING_LOOPS (
     completed_at DATETIME,
     duration_minutes INT DEFAULT 0, -- 루프 소요 시간 (분)
     interaction_count INT DEFAULT 0, -- 상호작용 횟수
-    metadata JSON, -- 추가 메타데이터
+    loop_metadata JSON, -- 추가 메타데이터
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS CONVERSATIONS (
     processing_time_ms INT DEFAULT 0, -- 처리 시간 (밀리초)
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     sequence_order INT NOT NULL, -- 루프 내 순서
-    metadata JSON, -- 추가 메타데이터
+    conversation_metadata JSON, -- 추가 메타데이터
     
     -- 외래키 제약조건
     FOREIGN KEY (loop_id) REFERENCES LEARNING_LOOPS(loop_id) ON DELETE CASCADE,
@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS QUIZ_ATTEMPTS (
     time_taken_seconds INT DEFAULT 0, -- 소요 시간 (초)
     difficulty_level ENUM('low', 'medium', 'high') NOT NULL,
     attempt_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    metadata JSON, -- 추가 메타데이터
+    quiz_metadata JSON, -- 추가 메타데이터
     
     -- 외래키 제약조건
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,

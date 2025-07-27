@@ -90,7 +90,7 @@ class ChatGPTAPIManager:
     
     def __init__(self):
         self.client = None
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4")
+        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.max_retries = 3
         self.retry_delay = 1.0
         self.quality_analyzer = PromptQualityAnalyzer()

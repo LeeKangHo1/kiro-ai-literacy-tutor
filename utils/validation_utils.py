@@ -280,6 +280,20 @@ def validate_pagination_params(page: str, per_page: str, max_per_page: int = 100
         return False, "페이지네이션 파라미터 검증 중 오류가 발생했습니다.", 0, 0
 
 
+def validate_required_fields(data: dict, required_fields: list) -> Tuple[bool, str]:
+    """
+    필수 필드 검증 (별칭 함수)
+    
+    Args:
+        data: 검증할 데이터 딕셔너리
+        required_fields: 필수 필드 리스트
+        
+    Returns:
+        (유효성 여부, 오류 메시지)
+    """
+    return validate_request_data(data, required_fields)
+
+
 class ValidationUtils:
     """검증 유틸리티 클래스"""
     
@@ -305,4 +319,10 @@ class ValidationUtils:
     def validate_user_level(user_level: str) -> bool:
         """사용자 레벨 유효성 검증"""
         is_valid, _ = validate_user_level(user_level)
+        return is_valid
+    
+    @staticmethod
+    def validate_required_fields(data: dict, required_fields: list) -> bool:
+        """필수 필드 검증"""
+        is_valid, _ = validate_required_fields(data, required_fields)
         return is_valid

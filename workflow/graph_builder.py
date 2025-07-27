@@ -1,7 +1,7 @@
 # workflow/graph_builder.py
 # StateGraph 구성 및 노드 연결 모듈
 
-from langgraph import StateGraph, END
+from langgraph.graph import StateGraph, END
 from .state_management import TutorState
 from .node_definitions import NodeRegistry
 from .edge_conditions import EdgeRegistry
@@ -244,3 +244,24 @@ def reset_global_instances():
     global _global_graph_builder, _global_executor
     _global_graph_builder = None
     _global_executor = None
+
+
+class TutorWorkflow:
+    """튜터 워크플로우 실행을 위한 래퍼 클래스"""
+    
+    def __init__(self):
+        self.executor = get_graph_executor()
+    
+    def execute(self, state: TutorState) -> TutorState:
+        """워크플로우 실행"""
+        return self.executor.execute_step(state)
+    
+    def stream(self, state: TutorState):
+        """워크플로우 스트리밍 실행"""
+        return self.executor.execute_stream(state)
+
+
+def create_workflow_graph():
+    """워크플로우 그래프 생성 (테스트용)"""
+    builder = get_graph_builder()
+    return builder.get_compiled_graph()

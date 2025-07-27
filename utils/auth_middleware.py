@@ -205,3 +205,48 @@ def is_authenticated():
         인증 여부 (bool)
     """
     return getattr(g, 'is_authenticated', False)
+
+
+def require_auth(f):
+    """
+    인증이 필요한 엔드포인트를 위한 데코레이터
+    
+    사용법:
+        @require_auth
+        def protected_endpoint():
+            pass
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            # 인증 확인
+            if not hasattr(g, 'current_user') or not g.current_user:
+                return jsonify({
+                    'success': False,
+                    'message': '인증이 필요합니다.',
+                    'error_code': 'AUTH_REQUIRED'
+                }), 401
+            
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"인증 데코레이터 오류: {str(e)}")
+            return jsonify({
+                'success': False,
+                'message': '인증 확인 중 오류가 발생했습니다.',
+                'error_code': 'AUTH_ERROR'
+            }), 500
+    
+    return decorated
+
+
+def token_required(f):
+    """
+    토큰 인증이 필요한 엔드포인트를 위한 데코레이터 (require_auth의 별칭)
+    
+    사용법:
+        @token_required
+        def protected_endpoint():
+            pass
+    """
+    return require_auth(f)

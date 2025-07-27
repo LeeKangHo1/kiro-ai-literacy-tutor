@@ -3,6 +3,10 @@
 
 import os
 from dotenv import load_dotenv
+import pymysql
+
+# PyMySQL을 MySQLdb로 사용하도록 설정
+pymysql.install_as_MySQLdb()
 
 # .env 파일 로드
 load_dotenv()
@@ -25,7 +29,7 @@ class Config:
     
     # OpenAI API 설정
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
-    OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4')
+    OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
     
     # ChromaDB 설정
     CHROMADB_HOST = os.environ.get('CHROMADB_HOST', 'localhost')

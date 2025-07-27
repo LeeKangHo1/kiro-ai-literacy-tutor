@@ -219,7 +219,7 @@ class LearningService:
             )
     
     @staticmethod
-    def process_chat_message(user_id: int, message: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def process_chat_message(user_id: int, message: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         채팅 메시지 처리 (LangGraph 워크플로우 실행 + UI 모드 관리)
         
