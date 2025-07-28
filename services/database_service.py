@@ -7,6 +7,7 @@ from models import db
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Optional, List, Dict, Any
 import logging
+from utils.performance_middleware import database_monitoring
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ class DatabaseService:
     """데이터베이스 관련 서비스 클래스"""
     
     @staticmethod
+    @database_monitoring("create_record")
     def create_record(model_class, **kwargs) -> Optional[Any]:
         """레코드 생성"""
         try:
@@ -28,6 +30,7 @@ class DatabaseService:
             return None
     
     @staticmethod
+    @database_monitoring("get_record_by_id")
     def get_record_by_id(model_class, record_id: int) -> Optional[Any]:
         """ID로 레코드 조회"""
         try:
@@ -37,6 +40,7 @@ class DatabaseService:
             return None
     
     @staticmethod
+    @database_monitoring("get_records_by_filter")
     def get_records_by_filter(model_class, **filters) -> List[Any]:
         """필터로 레코드 조회"""
         try:

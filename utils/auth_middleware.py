@@ -250,3 +250,45 @@ def token_required(f):
             pass
     """
     return require_auth(f)
+
+
+def admin_required(f):
+    """
+    관리자 권한이 필요한 엔드포인트를 위한 데코레이터
+    
+    사용법:
+        @admin_required
+        def admin_only_endpoint():
+            pass
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            # 인증 확인
+            if not hasattr(g, 'current_user') or not g.current_user:
+                return jsonify({
+                    'success': False,
+                    'message': '인증이 필요합니다.',
+                    'error_code': 'AUTH_REQUIRED'
+                }), 401
+            
+            # 관리자 권한 확인 (높은 레벨 사용자를 관리자로 간주)
+            user_level = g.current_user.get('user_level')
+            if user_level != 'high':
+                return jsonify({
+                    'success': False,
+                    'message': '관리자 권한이 필요합니다.',
+                    'error_code': 'ADMIN_REQUIRED'
+                }), 403
+            
+            return f(*args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"관리자 권한 데코레이터 오류: {str(e)}")
+            return jsonify({
+                'success': False,
+                'message': '권한 확인 중 오류가 발생했습니다.',
+                'error_code': 'AUTH_ERROR'
+            }), 500
+    
+    return decorated

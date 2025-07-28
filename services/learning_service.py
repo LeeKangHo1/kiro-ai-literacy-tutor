@@ -12,17 +12,24 @@ from workflow.graph_builder import TutorWorkflow
 from workflow.state_management import TutorState, StateManager
 from services.ui_mode_service import UIStateSerializer
 from services.websocket_service import get_websocket_manager
+from utils.error_handler import (
+    BusinessLogicError, DatabaseError, ValidationError,
+    handle_errors, ErrorCategory, ErrorSeverity
+)
+from utils.logging_config import LoggingConfig, log_function_call
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import uuid
 
-logger = logging.getLogger(__name__)
+logger = LoggingConfig.get_contextual_logger('learning_service')
 
 class LearningService:
     """학습 관련 비즈니스 로직을 처리하는 서비스 클래스"""
     
     @staticmethod
+    @handle_errors(ErrorCategory.BUSINESS_LOGIC, ErrorSeverity.MEDIUM)
+    @log_function_call('learning_service')
     def get_diagnosis_quiz(user_id: int) -> Dict[str, Any]:
         """
         사용자 진단 퀴즈 조회

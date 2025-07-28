@@ -7,15 +7,21 @@ from utils.password_utils import PasswordManager, validate_password
 from utils.validation_utils import ValidationUtils
 from utils.response_utils import create_response
 from services.database_service import DatabaseService
+from utils.error_handler import (
+    AuthenticationError, ValidationError, DatabaseError, 
+    handle_errors, ErrorCategory, ErrorSeverity
+)
+from utils.logging_config import LoggingConfig
 import logging
 from typing import Dict, Any, Optional, Tuple
 
-logger = logging.getLogger(__name__)
+logger = LoggingConfig.get_contextual_logger('auth_service')
 
 class AuthService:
     """인증 관련 비즈니스 로직을 처리하는 서비스 클래스"""
     
     @staticmethod
+    @handle_errors(ErrorCategory.AUTHENTICATION, ErrorSeverity.MEDIUM)
     def register_user(username: str, email: str, password: str, user_type: str) -> Dict[str, Any]:
         """
         사용자 회원가입
@@ -35,12 +41,18 @@ class AuthService:
                 username, email, password, user_type
             )
             if not validation_result['success']:
-                return validation_result
+                raise ValidationError(
+                    validation_result['message'],
+                    details={'error_code': validation_result.get('error_code')}
+                )
             
             # 중복 사용자 확인
             duplicate_check = AuthService._check_duplicate_user(username, email)
             if not duplicate_check['success']:
-                return duplicate_check
+                raise ValidationError(
+                    duplicate_check['message'],
+                    details={'error_code': duplicate_check.get('error_code')}
+                )
             
             # 사용자 생성
             user = User(
@@ -54,10 +66,10 @@ class AuthService:
             # 데이터베이스에 저장
             if not user.save():
                 logger.error(f"사용자 저장 실패 - username: {username}")
-                return create_response(
-                    success=False,
-                    message="회원가입 처리 중 오류가 발생했습니다.",
-                    error_code="REGISTRATION_FAILED"
+                raise DatabaseError(
+                    "회원가입 처리 중 데이터베이스 오류가 발생했습니다.",
+                    severity=ErrorSeverity.HIGH,
+                    details={'username': username}
                 )
             
             # JWT 토큰 생성
