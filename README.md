@@ -1,4 +1,4 @@
-## 참고용 프로젝트
+# 아래는 참고용 프로젝트입니다.
  - kiro와 claude와 함께 바이브 코딩한 프로젝트
 
 # AI Literacy Navigator
