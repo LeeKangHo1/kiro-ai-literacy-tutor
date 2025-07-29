@@ -150,4 +150,8 @@ export interface DiagnosisResponse {
   recommended_chapters: number[]
 }
 
+// 서비스 인스턴스들을 export
+export { authService } from './authService'
+export { learningService } from './learningService'
+
 export default apiClient
