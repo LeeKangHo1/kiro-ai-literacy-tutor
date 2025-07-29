@@ -15,6 +15,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    # SQLAlchemy 초기화
+    from models import db
+    db.init_app(app)
+    
     # 로깅 시스템 초기화
     LoggingConfig.setup_logging(
         app=app,

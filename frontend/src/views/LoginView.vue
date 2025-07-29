@@ -75,7 +75,7 @@
               <div class="text-center mt-3">
                 <p class="mb-0">
                   계정이 없으신가요?
-                  <a href="#" class="text-decoration-none">회원가입</a>
+                  <router-link to="/register" class="text-decoration-none">회원가입</router-link>
                 </p>
               </div>
             </div>
@@ -90,13 +90,14 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { validateLoginForm, type LoginFormData } from '@/utils/authValidation'
 
 // 라우터 및 스토어
 const router = useRouter()
 const authStore = useAuthStore()
 
 // 폼 데이터
-const loginForm = reactive({
+const loginForm = reactive<LoginFormData>({
   username: '',
   password: ''
 })
@@ -106,17 +107,23 @@ const errors = ref<{ username?: string; password?: string }>({})
 
 // 폼 검증
 const validateForm = (): boolean => {
+  const validation = validateLoginForm(loginForm)
+  
+  if (!validation.isValid) {
+    // 에러 메시지를 필드별로 분류
+    errors.value = {}
+    validation.errors.forEach(error => {
+      if (error.includes('사용자명')) {
+        errors.value.username = error
+      } else if (error.includes('비밀번호')) {
+        errors.value.password = error
+      }
+    })
+    return false
+  }
+  
   errors.value = {}
-  
-  if (!loginForm.username.trim()) {
-    errors.value.username = '사용자명을 입력해주세요.'
-  }
-  
-  if (!loginForm.password.trim()) {
-    errors.value.password = '비밀번호를 입력해주세요.'
-  }
-  
-  return Object.keys(errors.value).length === 0
+  return true
 }
 
 // 로그인 처리
@@ -127,14 +134,19 @@ const handleLogin = async () => {
   
   authStore.clearError()
   
-  const success = await authStore.login({
-    username: loginForm.username,
-    password: loginForm.password
-  })
-  
-  if (success) {
-    // 로그인 성공 시 학습 페이지로 이동
-    router.push('/learning')
+  try {
+    const success = await authStore.login({
+      username: loginForm.username.trim(),
+      password: loginForm.password
+    })
+    
+    if (success) {
+      // 로그인 성공 시 원래 가려던 페이지 또는 학습 페이지로 이동
+      const redirectPath = (router.currentRoute.value.query.redirect as string) || '/learning'
+      await router.push(redirectPath)
+    }
+  } catch (error) {
+    console.error('로그인 처리 중 오류:', error)
   }
 }
 </script>

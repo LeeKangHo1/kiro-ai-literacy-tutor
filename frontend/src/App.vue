@@ -5,6 +5,7 @@
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import TokenExpiryNotification from '@/components/TokenExpiryNotification.vue'
 
 // 스토어
 const authStore = useAuthStore()
@@ -19,6 +20,8 @@ onMounted(() => {
 <template>
   <div id="app">
     <RouterView />
+    <!-- 토큰 만료 알림 -->
+    <TokenExpiryNotification />
   </div>
 </template>
 

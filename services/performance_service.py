@@ -247,39 +247,59 @@ class DatabaseOptimizer:
     def create_indexes():
         """성능 최적화를 위한 인덱스 생성"""
         try:
-            # 복합 인덱스 생성
+            # MySQL용 인덱스 정의 (테이블명, 인덱스명, 컬럼)
             indexes = [
                 # 사용자 관련 인덱스
-                "CREATE INDEX IF NOT EXISTS idx_users_type_level ON USERS(user_type, user_level)",
-                "CREATE INDEX IF NOT EXISTS idx_users_active_created ON USERS(is_active, created_at)",
+                ("USERS", "idx_users_type_level", "user_type, user_level"),
+                ("USERS", "idx_users_active_created", "is_active, created_at"),
                 
                 # 학습 진도 관련 인덱스
-                "CREATE INDEX IF NOT EXISTS idx_progress_user_status ON USER_LEARNING_PROGRESS(user_id, completion_status)",
-                "CREATE INDEX IF NOT EXISTS idx_progress_chapter_status ON USER_LEARNING_PROGRESS(chapter_id, completion_status)",
-                "CREATE INDEX IF NOT EXISTS idx_progress_last_accessed ON USER_LEARNING_PROGRESS(last_accessed_at DESC)",
+                ("USER_LEARNING_PROGRESS", "idx_progress_user_status", "user_id, completion_status"),
+                ("USER_LEARNING_PROGRESS", "idx_progress_chapter_status", "chapter_id, completion_status"),
+                ("USER_LEARNING_PROGRESS", "idx_progress_last_accessed", "last_accessed_at DESC"),
                 
                 # 학습 루프 관련 인덱스
-                "CREATE INDEX IF NOT EXISTS idx_loops_user_chapter_status ON LEARNING_LOOPS(user_id, chapter_id, loop_status)",
-                "CREATE INDEX IF NOT EXISTS idx_loops_started_at ON LEARNING_LOOPS(started_at DESC)",
-                "CREATE INDEX IF NOT EXISTS idx_loops_completed_at ON LEARNING_LOOPS(completed_at DESC)",
+                ("LEARNING_LOOPS", "idx_loops_user_chapter_status", "user_id, chapter_id, loop_status"),
+                ("LEARNING_LOOPS", "idx_loops_started_at", "started_at DESC"),
+                ("LEARNING_LOOPS", "idx_loops_completed_at", "completed_at DESC"),
                 
                 # 대화 관련 인덱스
-                "CREATE INDEX IF NOT EXISTS idx_conversations_loop_sequence ON CONVERSATIONS(loop_id, sequence_order)",
-                "CREATE INDEX IF NOT EXISTS idx_conversations_timestamp ON CONVERSATIONS(timestamp DESC)",
-                "CREATE INDEX IF NOT EXISTS idx_conversations_agent ON CONVERSATIONS(agent_name, message_type)",
+                ("CONVERSATIONS", "idx_conversations_loop_sequence", "loop_id, sequence_order"),
+                ("CONVERSATIONS", "idx_conversations_timestamp", "timestamp DESC"),
+                ("CONVERSATIONS", "idx_conversations_agent", "agent_name, message_type"),
                 
                 # 퀴즈 시도 관련 인덱스
-                "CREATE INDEX IF NOT EXISTS idx_quiz_user_chapter ON QUIZ_ATTEMPTS(user_id, chapter_id)",
-                "CREATE INDEX IF NOT EXISTS idx_quiz_loop_score ON QUIZ_ATTEMPTS(loop_id, score DESC)",
-                "CREATE INDEX IF NOT EXISTS idx_quiz_attempted_at ON QUIZ_ATTEMPTS(attempted_at DESC)"
+                ("QUIZ_ATTEMPTS", "idx_quiz_user_chapter", "user_id, chapter_id"),
+                ("QUIZ_ATTEMPTS", "idx_quiz_loop_score", "loop_id, score DESC"),
+                ("QUIZ_ATTEMPTS", "idx_quiz_attempted_at", "attempted_at DESC")
             ]
             
-            for index_sql in indexes:
+            for table_name, index_name, columns in indexes:
                 try:
-                    db.session.execute(text(index_sql))
-                    logger.info(f"인덱스 생성 완료: {index_sql}")
+                    # 인덱스 존재 여부 확인
+                    check_query = text("""
+                        SELECT COUNT(*) as count 
+                        FROM information_schema.statistics 
+                        WHERE table_schema = DATABASE() 
+                        AND table_name = :table_name 
+                        AND index_name = :index_name
+                    """)
+                    
+                    result = db.session.execute(check_query, {
+                        'table_name': table_name,
+                        'index_name': index_name
+                    }).fetchone()
+                    
+                    if result.count == 0:
+                        # 인덱스가 존재하지 않으면 생성
+                        create_query = text(f"CREATE INDEX {index_name} ON {table_name}({columns})")
+                        db.session.execute(create_query)
+                        logger.info(f"인덱스 생성 완료: {index_name} ON {table_name}")
+                    else:
+                        logger.info(f"인덱스 이미 존재: {index_name} ON {table_name}")
+                        
                 except Exception as e:
-                    logger.warning(f"인덱스 생성 실패: {index_sql} - {e}")
+                    logger.warning(f"인덱스 생성 실패: {index_name} ON {table_name} - {e}")
             
             db.session.commit()
             logger.info("모든 성능 최적화 인덱스 생성 완료")

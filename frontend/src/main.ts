@@ -9,10 +9,18 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { useAuthStore } from '@/stores/authStore'
 
 const app = createApp(App)
 
+// Pinia 설정
 app.use(createPinia())
+
+// 인증 상태 초기화
+const authStore = useAuthStore()
+authStore.initializeAuth()
+
+// 라우터 설정
 app.use(router)
 
 app.mount('#app')
