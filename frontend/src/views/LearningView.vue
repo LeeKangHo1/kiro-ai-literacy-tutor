@@ -62,7 +62,9 @@
           </div>
 
           <!-- 채팅/퀴즈 통합 인터페이스 -->
-          <ChatInterface />
+          <div class="chat-container">
+            <ChatInterface />
+          </div>
         </div>
       </div>
     </div>
@@ -98,13 +100,27 @@ const getCurrentChapterTitle = (): string => {
 
 // 챕터 선택
 const selectChapter = (chapterId: number) => {
+  // 현재 대화 저장
+  if (learningStore.messages.length > 0) {
+    learningStore.saveMessagesToLocal()
+  }
+  
   learningStore.setCurrentChapter(chapterId)
-  learningStore.clearMessages()
+  
+  // 새 챕터의 대화 기록 복원 시도
+  const restored = learningStore.loadMessagesFromLocal(chapterId)
+  if (!restored) {
+    learningStore.clearMessages()
+    learningStore.initializeLearningSession()
+  }
 }
 
 // 대화 초기화
 const clearChat = () => {
+  // 로컬 스토리지에서도 삭제
+  localStorage.removeItem(`learning_session_${learningStore.currentChapter}`)
   learningStore.clearMessages()
+  learningStore.initializeLearningSession()
 }
 
 // 로그아웃 처리
@@ -121,8 +137,12 @@ onMounted(() => {
     return
   }
   
-  // 학습 세션 초기화
-  learningStore.initializeLearningSession()
+  // 이전 대화 기록 복원 시도
+  const restored = learningStore.loadMessagesFromLocal(learningStore.currentChapter)
+  if (!restored) {
+    // 복원 실패 시 새 세션 시작
+    learningStore.initializeLearningSession()
+  }
 })
 </script>
 
@@ -204,6 +224,11 @@ onMounted(() => {
 .learning-header {
   background-color: white;
   flex-shrink: 0;
+}
+
+.chat-container {
+  flex: 1;
+  overflow: hidden;
 }
 
 .user-info {

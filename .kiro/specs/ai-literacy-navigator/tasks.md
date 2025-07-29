@@ -503,7 +503,12 @@
     - Vue Router 가드: 인증 확인
     - _요구사항: 6.1, 6.2, 6.3_
 
-  - [ ] 15.3 통합 학습 인터페이스 (핵심 기능만)
+  - [x] 15.3 통합 학습 인터페이스 (핵심 기능만)
+
+
+
+
+
     - LearningView.vue: 메인 학습 페이지 (Bootstrap Container)
     - ChatInterface.vue: 채팅 + 퀴즈 통합 컴포넌트
       - 메시지 표시 영역 (Bootstrap Card)

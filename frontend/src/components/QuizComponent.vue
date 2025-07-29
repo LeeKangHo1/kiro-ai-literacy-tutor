@@ -185,12 +185,21 @@ const testPrompt = async () => {
     // 실제 구현에서는 백엔드 API 호출
     // const response = await apiClient.post('/learning/test-prompt', { prompt: promptAnswer.value })
     
-    // 임시 응답 (실제로는 ChatGPT API 응답)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    promptResult.value = "이것은 ChatGPT API의 테스트 응답입니다. 실제 구현에서는 백엔드를 통해 ChatGPT API를 호출하여 결과를 받아옵니다."
+    // 임시 응답 시뮬레이션
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // 실제 ChatGPT API 응답을 시뮬레이션
+    const sampleResponses = [
+      "안녕하세요! 도움이 필요하시면 언제든 말씀해 주세요.",
+      "네, 이해했습니다. 더 구체적인 질문이 있으시면 알려주세요.",
+      "좋은 질문이네요! 이에 대해 자세히 설명드리겠습니다.",
+      "물론입니다. 이 주제에 대해 더 자세히 알아보겠습니다."
+    ]
+    
+    promptResult.value = sampleResponses[Math.floor(Math.random() * sampleResponses.length)]
   } catch (error) {
     console.error('프롬프트 테스트 오류:', error)
-    promptResult.value = "프롬프트 테스트 중 오류가 발생했습니다."
+    promptResult.value = "프롬프트 테스트 중 오류가 발생했습니다. 다시 시도해 주세요."
   } finally {
     isTestingPrompt.value = false
   }

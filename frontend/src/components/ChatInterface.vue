@@ -25,8 +25,7 @@
           :class="message.type"
         >
           <div class="message-bubble">
-            <div class="message-content">
-              {{ message.content }}
+            <div class="message-content" v-html="formatMessageContent(message.content)">
             </div>
             <div class="message-time">
               {{ formatTime(message.timestamp) }}
@@ -131,20 +130,28 @@ const sendMessage = async () => {
   if (success) {
     messageInput.value = ''
     scrollToBottom()
+    // 메시지 전송 후 자동 저장
+    learningStore.saveMessagesToLocal()
   }
 }
 
 // 퀴즈 답변 처리
 const handleQuizAnswer = async (answer: any) => {
   const answerText = typeof answer === 'string' ? answer : JSON.stringify(answer)
-  await learningStore.sendMessage(`답변: ${answerText}`)
-  scrollToBottom()
+  const success = await learningStore.sendMessage(`답변: ${answerText}`)
+  if (success) {
+    scrollToBottom()
+    learningStore.saveMessagesToLocal()
+  }
 }
 
 // 버튼 클릭 처리
 const handleButtonClick = async (buttonData: any) => {
-  await learningStore.sendMessage(buttonData.text || buttonData.value)
-  scrollToBottom()
+  const success = await learningStore.sendMessage(buttonData.text || buttonData.value)
+  if (success) {
+    scrollToBottom()
+    learningStore.saveMessagesToLocal()
+  }
 }
 
 // 시간 포맷팅
@@ -153,6 +160,11 @@ const formatTime = (timestamp: Date): string => {
     hour: '2-digit',
     minute: '2-digit'
   }).format(timestamp)
+}
+
+// 메시지 내용 포맷팅 (줄바꿈 처리)
+const formatMessageContent = (content: string): string => {
+  return content.replace(/\n/g, '<br>')
 }
 
 // 스크롤을 맨 아래로
@@ -237,6 +249,11 @@ watch(
 .message-content {
   line-height: 1.4;
   word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.message-content :deep(br) {
+  line-height: 1.4;
 }
 
 .message-time {

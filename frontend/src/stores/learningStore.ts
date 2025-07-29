@@ -77,16 +77,19 @@ export const useLearningStore = defineStore('learning', () => {
     try {
       const chatMessage: ChatMessage = {
         message: content,
-        chapter_id: currentChapter.value
+        context: {
+          current_chapter: currentChapter.value,
+          stage: 'chat'
+        }
       }
 
-      const response = await apiClient.post<ApiResponse<ChatResponse>>('/learning/chat', chatMessage)
+      const response = await apiClient.post<ApiResponse<ChatResponse>>('/learning/chat/message', chatMessage)
       
       if (response.data.success && response.data.data) {
-        const { system_message, ui_mode, ui_elements } = response.data.data
+        const { response: systemResponse, ui_mode, ui_elements } = response.data.data
         
         // 시스템 응답 추가
-        addSystemMessage(system_message, ui_elements)
+        addSystemMessage(systemResponse, ui_elements)
         
         // UI 모드 업데이트
         uiMode.value = ui_mode
@@ -130,6 +133,51 @@ export const useLearningStore = defineStore('learning', () => {
     setCurrentChapter(1)
     setUIMode('chat')
     clearError()
+    
+    // 환영 메시지 추가
+    addSystemMessage(
+      '안녕하세요! AI 활용 맞춤형 학습 튜터에 오신 것을 환영합니다.\n\n' +
+      '학습을 시작하려면 "시작"이라고 입력하거나, 궁금한 것이 있으면 언제든 질문해 주세요!'
+    )
+  }
+
+  // 대화 기록 저장 (로컬 스토리지)
+  const saveMessagesToLocal = () => {
+    try {
+      const data = {
+        messages: messages.value,
+        currentChapter: currentChapter.value,
+        timestamp: new Date().toISOString()
+      }
+      localStorage.setItem(`learning_session_${currentChapter.value}`, JSON.stringify(data))
+    } catch (error) {
+      console.warn('대화 기록 저장 실패:', error)
+    }
+  }
+
+  // 대화 기록 복원 (로컬 스토리지)
+  const loadMessagesFromLocal = (chapterId: number) => {
+    try {
+      const saved = localStorage.getItem(`learning_session_${chapterId}`)
+      if (saved) {
+        const data = JSON.parse(saved)
+        // 1시간 이내의 데이터만 복원
+        const savedTime = new Date(data.timestamp)
+        const now = new Date()
+        const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60)
+        
+        if (hoursDiff < 1) {
+          messages.value = data.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }))
+          return true
+        }
+      }
+    } catch (error) {
+      console.warn('대화 기록 복원 실패:', error)
+    }
+    return false
   }
 
   return {
@@ -153,6 +201,8 @@ export const useLearningStore = defineStore('learning', () => {
     setUIMode,
     clearMessages,
     clearError,
-    initializeLearningSession
+    initializeLearningSession,
+    saveMessagesToLocal,
+    loadMessagesFromLocal
   }
 })

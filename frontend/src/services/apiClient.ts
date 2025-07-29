@@ -121,16 +121,22 @@ export interface LoginResponse {
 // 학습 관련 API 타입
 export interface ChatMessage {
   message: string
-  chapter_id?: number
+  context?: {
+    current_chapter?: number
+    loop_id?: string
+    stage?: string
+  }
 }
 
 export interface ChatResponse {
-  system_message: string
+  response: string
   ui_mode: 'chat' | 'quiz' | 'restricted'
   ui_elements?: {
     type: string
     data: any
-  }
+  } | null
+  current_stage: string
+  loop_id: string
 }
 
 // 진단 퀴즈 관련 타입
